@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<!-- 
+		描述一个持久化类
+		 name属性为持久化类的全名
+		 table 该持久化类对应的表名  默认情况下为类名
+		 catalog 为数据库的名称
+	 -->
+	<class name="com.mindor.entity.InfraredBin" table="InfraredBin">
+		<!-- 
+			id对应表中的主键
+			  name为持久化类中属性的名称
+			  length 为对应数据库表中相应字段的长度
+			  column  属性的名称对应的表的字段名称   不写则默认和属性的名称一致
+		 -->
+		<id name="infraredBinId" length="12" type="java.lang.Integer" column="infraredBinId">
+			<!-- 
+				主键的生成器
+			 -->
+			<generator class="identity"></generator>
+		</id>
+		<property name="userId" column="userId" type="java.lang.String" length="128">
+		</property>
+		<property name="equipmentId" column="equipmentId" type="java.lang.String" length="128">
+		</property>  
+		<property name="nick" column="nick" type="java.lang.String" length="52">
+		</property>
+		<property name="mac" column="mac" type="java.lang.String" length="128">
+		</property>   
+		<property name="device_id" column="device_id" type="java.lang.String" length="128">
+		</property>   
+		<property name="brand_id" column="brand_id" type="java.lang.String" length="128">
+		</property>
+		<property name="kfid" column="kfid" type="java.lang.String" length="128">
+		</property>
+		<property name="bn" column="bn" type="java.lang.String" length="128">
+		</property>  
+		<property name="image" column="image" type="java.lang.String" length="128">
+		</property>
+		<property name="equipmentState" column="equipmentState" type="java.lang.String" length="12">
+		</property>
+		<property name="productId" column="productId" type="java.lang.String" length="26">
+		</property>
+		<property name="equipmentNote" column="equipmentNote" type="java.lang.String" length="26">
+		</property>
+		
+	</class>
+</hibernate-mapping>

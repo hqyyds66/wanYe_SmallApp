@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+     <bean id="infrareddao" class="com.mindor.dao.impl.Infrareddaoimpl">
+	   <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="infraredService" class="com.mindor.serivce.serviceimpl.InfraredServiceimpl">
+	   <property name="infrareddao" ref="infrareddao"></property>
+	</bean>
+	
+	<bean id="wanYeApiInfrared" class="com.mindor.api.WanYeApiInfrared" scope="prototype">
+	   <property name="infraredService" ref="infraredService"></property>
+	</bean>
+</beans>

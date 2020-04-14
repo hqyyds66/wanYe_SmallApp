@@ -1,0 +1,517 @@
+package com.mindor.dao.impl;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts2.ServletActionContext;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+
+import com.mindor.dao.EquipmentModeldao;
+import com.mindor.entity.EquipmentInfo;
+import com.mindor.entity.EquipmentModel;
+import com.mindor.entity.Intermediate;
+import com.mindor.entity.OpenUser;
+import com.mindor.entity.Product;
+
+public class EquipmentModelimpl extends HibernateDaoSupport implements
+		EquipmentModeldao {
+
+	@Resource(name = "sessionFactory")
+	private SessionFactory sessionFactory;
+
+	/*
+	 * (non-Javadoc) 添加模式
+	 * 
+	 * @see
+	 * com.mindor.dao.equipmentModeldao#addequipmentModel(com.mindor.entity.
+	 * EquipmentModel)
+	 */
+	@SuppressWarnings( { "unchecked", "rawtypes" })
+	@Override
+	public int addEquipmentModel(String userId, EquipmentModel equipmentModel) {
+
+		// TODO Auto-generated method stub
+		int size = 0;
+		try {
+			Configuration cfg = new Configuration();
+			sessionFactory = cfg.configure().buildSessionFactory();
+
+		} catch (Throwable ex) {
+			System.err.println("Failed to create sessionFactory object." + ex);
+			throw new ExceptionInInitializerError(ex);
+		}
+		Session session = sessionFactory.openSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+			ServletActionContext.getRequest().setCharacterEncoding("utf-8");
+			OpenUser openUser;
+			String equipmentModelId = equipmentModel.getEquipmentModelId();
+
+			openUser = (OpenUser) session.get(OpenUser.class, userId);
+			equipmentModel.setOpenUser(openUser);
+			Serializable serializable = session.save(equipmentModel);
+
+			// 获取设备id集合
+			String equipmentList = equipmentModel.getEquipmentList();
+			String[] strsEquipmentList = equipmentList.split(",");
+			List listEquipmentList = Arrays.asList(strsEquipmentList);
+			List listEquipmentList02 = new ArrayList(listEquipmentList);
+
+			// 获取设备状态集合
+			String stateList = equipmentModel.getStateList();
+			String[] strsStateList = stateList.split(",");
+			List ListstrsState = Arrays.asList(strsStateList);
+			List ListstrsState02 = new ArrayList(ListstrsState);
+
+			if (listEquipmentList02.size() > 0) {
+
+				if (ListstrsState02.size() <= 0) {
+					String sql = "update Intermediate a set a.equipmentState=?";
+					Query query = session.createQuery(sql);
+					query.setString(0, "2");
+					query.executeUpdate();
+				} else {
+
+					for (int i = 0; i < listEquipmentList02.size(); i++) {// 将所有设备初始化关闭
+						String sql02 = "update Intermediate a set a.equipmentState=? where a.equipmentId=?";
+						Query query02 = session.createQuery(sql02);
+						query02.setString(0, "2");
+						query02.setString(1, listEquipmentList02.get(i)
+								.toString());
+						query02.executeUpdate();
+					}
+
+					for (int i = 0; i < ListstrsState02.size(); i++) {
+						String sql = "update Intermediate a set a.equipmentState=? where a.equipmentId=?";
+						Query query = session.createQuery(sql);
+						query.setString(0, "1");
+						query.setString(1, ListstrsState02.get(i).toString());
+						query.executeUpdate();
+					}
+				}
+			}
+			if (serializable == equipmentModelId) {
+				size = 1;
+			}
+
+			System.gc();// 执行垃圾回收
+			tx.commit();
+		} catch (Exception e) {
+			if (tx != null)
+				tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.getSessionFactory().close();
+			session.close();
+			System.gc();// 执行垃圾回收
+		}
+		return size;
+
+	}
+
+	/*
+	 * (non-Javadoc) 模式列表
+	 * 
+	 * @see
+	 * com.mindor.dao.equipmentModeldao#equmipentModelList(java.lang.String)
+	 */
+	@SuppressWarnings( { "unchecked", "rawtypes" })
+	@Override
+	public List<Map> equipmentModelList(String userId) {
+		// TODO Auto-generated method stub
+		List<Map> equipmentModel = null;
+
+		try {
+			Configuration cfg = new Configuration();
+			sessionFactory = cfg.configure().buildSessionFactory();
+
+		} catch (Throwable ex) {
+			System.err.println("Failed to create sessionFactory object." + ex);
+			throw new ExceptionInInitializerError(ex);
+		}
+		Session session = sessionFactory.openSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();// OpenUser
+			Query q;
+			String sql = "select a from EquipmentModel a left join a.OpenUser b where b.userId='"
+					+ userId + "' group by a.equipmentModelId"; // String
+																// sql="SELECT a FROM Product a limit "+(start-1)*pageSize+","+pageSize;
+			q = session.createQuery(sql);
+			equipmentModel = q.list();
+			System.gc();// 执行垃圾回收
+			tx.commit();
+		} catch (Exception e) {
+			if (tx != null)
+				tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.getSessionFactory().close();
+			session.close();
+			System.gc();// 执行垃圾回收
+		}
+		return equipmentModel;
+	}
+
+	/*
+	 * (non-Javadoc) 根据模式ID查询模式信息
+	 * 
+	 * @see
+	 * com.mindor.dao.equipmentModeldao#equipmentModelListById(java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public EquipmentModel equipmentModelListById(String equipmentModelId,
+			String userId) {
+		// TODO Auto-generated method stub
+		EquipmentModel equipmentModel = null;
+		try {
+			Configuration cfg = new Configuration();
+			sessionFactory = cfg.configure().buildSessionFactory();
+
+		} catch (Throwable ex) {
+			System.err.println("Failed to create sessionFactory object." + ex);
+			throw new ExceptionInInitializerError(ex);
+		}
+		Session session = sessionFactory.openSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+			equipmentModel = new EquipmentModel();
+			equipmentModel = (EquipmentModel) session.get(EquipmentModel.class,
+					equipmentModelId);
+			String equipmentList = equipmentModel.getEquipmentList();
+
+			List listEquipmentList04 = new LinkedList();
+
+			if (equipmentList.length() > 0) {
+				// 用逗号将字符串分开，得到字符串数组
+				String[] strsEquipmentList = equipmentList.split(",");
+				// 将字符串数组转换成集合
+				List listEquipmentList = Arrays.asList(strsEquipmentList);
+
+				List listEquipmentList02 = new ArrayList(listEquipmentList);
+				List listEquipmentList03 = new LinkedList();
+
+				System.out.println("listEquipmentList02============"
+						+ listEquipmentList02.size());
+				// 过滤掉空气监测仪
+
+				for (int j = 0; j < listEquipmentList02.size(); j++) {
+					// String
+					// sql02="SELECT a FROM Product a left join a.equipment b  GROUP BY a.productId";
+					String sql = "select p from Product p left join p.equipment e where e.equipmentId='"
+							+ listEquipmentList02.get(j) + "'";
+					List productlist = session.createQuery(sql).list();
+					Product product = (Product) productlist.get(0);
+					if (product.getProductId().equals("kqy001") == false) {
+						listEquipmentList03.add(listEquipmentList02.get(j));
+					}
+				}
+
+				// 判断用户是否添加过该设备
+				String sql01 = "select e from Intermediate e where e.userId='"
+						+ userId + "'";
+				List intermediateAll = session.createQuery(sql01).list();
+				if (intermediateAll.size() > 0) {
+					for (int j = 0; j < intermediateAll.size(); j++) {
+						Intermediate intermediate = (Intermediate) intermediateAll
+								.get(j);
+						String equipmentId = intermediate.getEquipmentId();
+						for (int j01 = 0; j01 < listEquipmentList03.size(); j01++) {
+							if (equipmentId
+									.equals(listEquipmentList03.get(j01))) {
+								listEquipmentList04.add(listEquipmentList03
+										.get(j01));
+							}
+						}
+					}
+				}
+			}
+
+			System.out.println("listEquipmentList04============"
+					+ listEquipmentList04);
+			List<EquipmentInfo> mylist = new LinkedList<EquipmentInfo>();
+			EquipmentInfo equipmentInfo = null;// 创建实体类
+			for (int i = 0; i < listEquipmentList04.size(); i++) {
+				String sql = "SELECT b.equipmentId,d.equipmentNote,a.productIcon,d.specificEquipmentLabel,d.equipmentState FROM product a,equipment b,openuser c,intermediate d WHERE  a.productId=d.productId AND b.equipmentId=d.equipmentId AND c.userId=d.userId AND d.equipmentId='"
+						+ listEquipmentList04.get(i)
+						+ "' AND d.userId='"
+						+ userId + "'";
+				List<Object> equipmentList02 = session.createSQLQuery(sql)
+						.list();
+
+				Iterator<Object> it = equipmentList02.iterator();
+				while (it.hasNext()) {
+					equipmentInfo = new EquipmentInfo();
+					Object[] objs = (Object[]) it.next();
+					equipmentInfo.setEquipmentId(String.valueOf(objs[0]));
+					equipmentInfo.setEquipmentNote(String.valueOf(objs[1]));
+					equipmentInfo.setProductIcon(String.valueOf(objs[2]));
+					equipmentInfo.setSpecificEquipmentLabel(String
+							.valueOf(objs[3]));
+					equipmentInfo.setEquipmentModelState(String
+							.valueOf(objs[4]));
+				}
+				mylist.add(equipmentInfo);
+			}
+
+			System.out.print("mylist=========" + mylist);
+			equipmentModel.setEquipmentDatas(mylist);
+			System.gc();// 执行垃圾回收
+			tx.commit();
+		} catch (Exception e) {
+			if (tx != null)
+				tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.getSessionFactory().close();
+			session.close();
+			System.gc();// 执行垃圾回收
+		}
+		return equipmentModel;
+	}
+
+	/*
+	 * (non-Javadoc) 更新模式
+	 * 
+	 * @see
+	 * com.mindor.dao.equipmentModeldao#updateequipmenttModel(java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public void updateEquipmentModel(String beginIf, String endIf,
+			String orderOnOff, String equipmentModelId,
+			String equipmentModelName, String equipmentModelIcon,
+			String equipmentModelBeginTime, String equipmentModelEndTime,
+			String equipmentModelRepeat, String equipmentList, String onOff,
+			String stateList) {
+		// TODO Auto-generated method stub
+		try {
+			Configuration cfg = new Configuration();
+			sessionFactory = cfg.configure().buildSessionFactory();
+
+		} catch (Throwable ex) {
+			System.err.println("Failed to create sessionFactory object." + ex);
+			throw new ExceptionInInitializerError(ex);
+		}
+		Session session = sessionFactory.openSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+
+			System.out.println("equipmentList===================="
+					+ equipmentList);
+
+			EquipmentModel equipmentModel = new EquipmentModel();
+			equipmentModel = (EquipmentModel) session.get(EquipmentModel.class,
+					equipmentModelId);
+			equipmentModel.setEquipmentModelName(equipmentModelName);
+			equipmentModel.setEquipmentModelIcon(equipmentModelIcon);
+			equipmentModel.setEquipmentModelRepeat(equipmentModelRepeat);
+			// equipmentModel.setEquipmentModelTime(equipmentModelTime);
+			equipmentModel.setEquipmentModelBeginTime(equipmentModelBeginTime);
+			equipmentModel.setEquipmentModelEndTime(equipmentModelEndTime);
+			equipmentModel.setBeginIf(beginIf);
+			equipmentModel.setEndIf(endIf);
+			equipmentModel.setOnOff(onOff);
+			equipmentModel.setOver("false");
+			equipmentModel.setEquipmentList(equipmentList);
+			equipmentModel.setStateList(stateList);
+			equipmentModel.setOnOff(onOff);
+
+			// 获取设备id集合
+			String[] strsEquipmentList = equipmentList.split(",");
+			List listEquipmentList = Arrays.asList(strsEquipmentList);
+			List listEquipmentList02 = new ArrayList(listEquipmentList);
+
+			// 获取设备状态集合
+			String[] strsStateList = stateList.split(",");
+			List ListstrsState = Arrays.asList(strsStateList);
+			List ListstrsState02 = new ArrayList(ListstrsState);
+
+			for (int i = 0; i < listEquipmentList02.size(); i++) {// 将所有设备初始化关闭
+				String sql02 = "update Intermediate a set a.equipmentState=? where a.equipmentId=?";
+				Query query02 = session.createQuery(sql02);
+				query02.setString(0, "2");
+				query02.setString(1, listEquipmentList02.get(i).toString());
+				query02.executeUpdate();
+			}
+
+			for (int i = 0; i < ListstrsState02.size(); i++) {
+				String sql = "update Intermediate a set a.equipmentState=? where a.equipmentId=?";
+				Query query = session.createQuery(sql);
+				query.setString(0, "1");
+				query.setString(1, ListstrsState02.get(i).toString());
+				query.executeUpdate();
+			}
+
+			session.update(equipmentModel);
+			System.gc();// 执行垃圾回收
+			tx.commit();
+		} catch (Exception e) {
+			if (tx != null)
+				tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.getSessionFactory().close();
+			session.close();
+			System.gc();// 执行垃圾回收
+		}
+	}
+
+	/*
+	 * (non-Javadoc) 删除模式
+	 * 
+	 * @see
+	 * com.mindor.dao.EquipmentModeldao#deleteEquipmentModel(java.lang.String)
+	 */
+	@Override
+	public int deleteEquipmentModel(String equipmentModelId) {
+		// TODO Auto-generated method stub
+		int size = 0;
+		try {
+			Configuration cfg = new Configuration();
+			sessionFactory = cfg.configure().buildSessionFactory();
+
+		} catch (Throwable ex) {
+			System.err.println("Failed to create sessionFactory object." + ex);
+			throw new ExceptionInInitializerError(ex);
+		}
+		Session session = sessionFactory.openSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+			EquipmentModel equipmentModel;
+			equipmentModel = (EquipmentModel) session.get(EquipmentModel.class,
+					equipmentModelId);
+			session.delete(equipmentModel);
+
+			equipmentModel = (EquipmentModel) session.get(EquipmentModel.class,
+					equipmentModelId);
+
+			System.out.println("equipmentModel================"
+					+ equipmentModel);
+			if (equipmentModel != null) {
+				size = 0;
+			} else {
+				size = 1;
+			}
+			System.gc();// 执行垃圾回收
+			tx.commit();
+		} catch (Exception e) {
+			if (tx != null)
+				tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.getSessionFactory().close();
+			session.close();
+			System.gc();// 执行垃圾回收
+		}
+		return size;
+	}
+
+	/*
+	 * (non-Javadoc) 删除模式下的设备
+	 * 
+	 * @see com.mindor.dao.EquipmentModeldao#deleteEquipment(java.lang.String,
+	 * java.lang.String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public int deleteEquipment(String equipmentModelId, String equipmentId) {
+		// TODO Auto-generated method stub
+		int size = 0;
+		try {
+			Configuration cfg = new Configuration();
+			sessionFactory = cfg.configure().buildSessionFactory();
+
+		} catch (Throwable ex) {
+			System.err.println("Failed to create sessionFactory object." + ex);
+			throw new ExceptionInInitializerError(ex);
+		}
+		Session session = sessionFactory.openSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+			EquipmentModel equipmentModel;
+			equipmentModel = (EquipmentModel) session.get(EquipmentModel.class,
+					equipmentModelId);
+			String equipmentList = equipmentModel.getEquipmentList();
+			String stateList = equipmentModel.getStateList();
+
+			String equipmentId02;
+
+			int a = 0;
+			// 用逗号将字符串分开，得到字符串数组
+			String[] strsEquipmentList = equipmentList.split(",");
+			String[] strsStateList = stateList.split(",");
+			// 将字符串数组转换成集合
+			List listEquipmentList = Arrays.asList(strsEquipmentList);
+			List listStateList = Arrays.asList(strsStateList);
+
+			List listEquipmentList02 = new ArrayList(listEquipmentList);
+			List listStateList02 = new ArrayList(listStateList);
+
+			System.out.print("listEquipmentList=====" + listEquipmentList);
+			System.out.print("listStateList=====" + listStateList);
+			System.out.print("equipmentId=====" + equipmentId);
+
+			// 删除集合中指定的设备id
+			for (int i = 0; i < listEquipmentList02.size(); i++) {
+				equipmentId02 = listEquipmentList02.get(i).toString();
+				if (equipmentId02.equals(equipmentId)) {
+					listEquipmentList02.remove(i);
+				}
+				;
+			}
+
+			System.out.println("a====================" + a);
+			// 删除集合中指定的设备的状态
+			for (int i = 0; i < listStateList02.size(); i++) {
+				equipmentId02 = listStateList02.get(i).toString();
+				if (listStateList02.equals(equipmentId)) {
+					listStateList02.remove(i);
+				}
+				;
+			}
+
+			String listStateList03 = StringUtils.join(listStateList02, ",");
+			String listEquipmentList03 = StringUtils.join(listEquipmentList02,
+					",");
+
+			equipmentModel.setStateList(listStateList03);
+			equipmentModel.setEquipmentList(listEquipmentList03);
+
+			session.update(equipmentModel);
+
+			size = 1;
+			System.gc();// 执行垃圾回收
+			tx.commit();
+		} catch (Exception e) {
+			if (tx != null)
+				tx.rollback();
+			e.printStackTrace();
+		} finally {
+			session.getSessionFactory().close();
+			session.close();
+			System.gc();// 执行垃圾回收
+		}
+		return size;
+	}
+
+}

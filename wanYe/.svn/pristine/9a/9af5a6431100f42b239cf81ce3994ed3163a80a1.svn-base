@@ -1,0 +1,97 @@
+#over01-1{
+		   background:#fff;
+		   height:3%;
+		   width:99%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   padding-top:1%;
+		   padding-left:1%;
+		   font-size:0.9em
+		 }
+		 
+		 #over02-1{
+		   background:#fff;
+		   height:11%;
+		   width:85%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   margin-top:1%;
+		   margin-left:1%;
+		   border:1px solid #dddddd;
+		 }
+		 
+		  #over02-1-1{
+		   background:#fff;
+		   height:100%;
+		   width:24%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   float:left;
+		   border-right:1px solid #dddddd;
+		 }
+		 #over02-1-2{
+		   background:#fff;
+		   height:100%;
+		   width:24%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   float:left;
+		   border-right:1px solid #dddddd;
+		 }
+		 #over02-1-3{
+		   background:#fff;
+		   height:100%;
+		   width:24%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   float:left;
+		   border-right:1px solid #dddddd;
+		 }
+		 #over02-1-4{
+		   background:#fff;
+		   height:100%;
+		   width:24%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   float:left;
+		 }
+		 
+		 #over34{
+		 height:37%;
+		 width:89.3%;
+		 background:;
+		 margin-top:1%;
+		 margin-left:1%;
+		 }
+		 
+		 #over03-1{
+		   background:#fff;
+		   height:100%;
+		   width:47%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   border:1px solid #dddddd;
+		   float:left;
+		 }
+		 
+		 #over04-1{
+		   background:#fff;
+		   height:100%;
+		   width:47%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   margin-left:1%;
+		   border:1px solid #dddddd;
+		   float:left;
+		 }
+		 
+		 #over05-1{
+		   background:#fff;
+		   height:30%;
+		   width:85%;
+		   font-family:黑体;
+		   font-weight:lighter;
+		   margin-top:1%;
+		   margin-left:1%;
+		   border:1px solid #dddddd;
+		 }

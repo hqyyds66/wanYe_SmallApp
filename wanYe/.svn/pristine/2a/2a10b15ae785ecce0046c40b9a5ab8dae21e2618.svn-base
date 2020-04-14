@@ -1,0 +1,139 @@
+package com.mindor.api;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Calendar;
+import java.util.List;
+
+import org.apache.struts2.ServletActionContext;
+
+import com.mindor.entity.TmtData;
+import com.mindor.serivce.TmtDataService;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+public class WanYeApiTmtData {
+	
+	private TmtDataService tmtDataService;
+	
+	/**
+	 *@author huangqin
+	 *  添加测温仪历史数据
+	 * 2020年3月3日
+	 * @throws IOException 
+	 */
+	public void addTmtdata() throws IOException {
+		JSONObject json = new JSONObject();
+		ServletActionContext.getResponse().setContentType(
+				"text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+		
+		String equipmentId = ServletActionContext.getRequest().getParameter(
+				"equipmentId");
+		String userId = ServletActionContext.getRequest()
+				.getParameter("userId");
+		String temp=ServletActionContext.getRequest()
+				.getParameter("temp");
+		String humOrThings=ServletActionContext.getRequest()
+				.getParameter("humOrThings");
+		
+		TmtData tmtData=new TmtData();
+		
+		//获取时间
+		Calendar c = Calendar.getInstance();
+		
+		int year = c.get(Calendar.YEAR); 
+		int month = c.get(Calendar.MONTH); 
+		int date = c.get(Calendar.DATE); 
+		int hour = c.get(Calendar.HOUR_OF_DAY); 
+		int minute = c.get(Calendar.MINUTE); 
+		
+		month=month+1;
+		
+		String yearMonth=year+"年"+month+"月"+date+"日";
+		String hourMinute=String.format("%02d:%02d", hour, minute);
+		
+		tmtData.setUserId(userId);
+		tmtData.setEquipmentId(equipmentId);
+		tmtData.setYearMonth(yearMonth);
+		tmtData.setHourMinute(hourMinute);
+		tmtData.setTemp(temp);
+		tmtData.setHumOrThings(humOrThings);
+		
+		tmtDataService.addTmtdata(tmtData);
+		
+		json.put("code", 200);
+		json.put("Message", "添加成功！");
+		
+		out.print(json);
+	}
+	
+	public TmtDataService getTmtDataService() {
+		return tmtDataService;
+	}
+
+	public void setTmtDataService(TmtDataService tmtDataService) {
+		this.tmtDataService = tmtDataService;
+	}
+
+	/**
+	 *@author huangqin
+	 * 查找用户下所有的历史数据
+	 * 2020年3月3日
+	 * @throws IOException 
+	 */
+	public void selectDataByUser() throws IOException {
+		JSONObject json = new JSONObject();
+		ServletActionContext.getResponse().setContentType(
+				"text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+		
+		String userId = ServletActionContext.getRequest()
+				.getParameter("userId");
+		String humOrThings=ServletActionContext.getRequest()
+				.getParameter("humOrThings");
+		List<TmtData> tmtDatas=tmtDataService.selectDataByUser(userId,humOrThings);
+		
+		
+		JSONArray jsonObject = null;
+		
+		jsonObject = JSONArray.fromObject(tmtDatas);// 转json
+		json.put("code", 200);
+		json.put("Message", "success");
+		json.put("data", jsonObject);
+		out.print(json);
+		
+	}
+	
+	/**
+	 *@author huangqin
+	 *  查找用户下 某个设备的历史数据
+	 * 2020年3月3日
+	 * @throws IOException 
+	 */
+	public void selectDataByUserEq() throws IOException {
+		JSONObject json = new JSONObject();
+		ServletActionContext.getResponse().setContentType(
+				"text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+		
+		String userId = ServletActionContext.getRequest()
+				.getParameter("userId");
+		String equipmentId= ServletActionContext.getRequest()
+				.getParameter("equipmentId");
+		String humOrThings=ServletActionContext.getRequest()
+				.getParameter("humOrThings");
+		List<TmtData> tmtDatas=tmtDataService.selectDataByUserEq(userId,equipmentId,humOrThings);
+		
+		JSONArray jsonObject = null;
+		
+		jsonObject = JSONArray.fromObject(tmtDatas);// 转json
+		json.put("code", 200);
+		json.put("Message", "success");
+		json.put("data", jsonObject);
+		out.print(json);
+			
+		}
+
+}

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<include file="struts/struts-User.xml"></include>
+	<include file="struts/struts-Equipment.xml"></include>
+	<include file="struts/struts-EmqApi.xml"></include>
+	<include file="struts/struts-WanyeApi.xml"></include>
+	<include file="struts/struts_SysRole.xml"></include>  
+	<include file="struts/struts_mqttLink.xml"></include>
+	<include file="struts/struts_Sensor.xml"></include> 
+	<include file="struts/struts_Product.xml"></include>  
+	<include file="struts/WanyeApi_product.xml"></include> 
+	<include file="struts/WanyeApi_User.xml"></include> 
+	<include file="struts/WanyeApi_equipment.xml"></include>   
+	<include file="struts/WanyeApi_EquipmentModel.xml"></include>  
+	<include file="struts/WanyeApi_Historical.xml"></include>   
+	<include file="struts/WanyeApi_updateHeads.xml"></include>  
+	<include file="struts/WanyeApi-App.xml"></include>
+	<include file="struts/WanyeApi-Timing.xml"></include> 
+	<include file="struts/WanyeApi-TimeDelay.xml"></include>
+	<include file="struts/WanyeApi-MessageManage.xml"></include>
+	<include file="struts/WanyeApi-PowerCount.xml"></include>
+	<include file="struts/WanyeApi-Infrared.xml"></include>  
+	<include file="struts/WanyeApi-RF.xml"></include>
+</struts>

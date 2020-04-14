@@ -1,0 +1,260 @@
+ #dv1 {
+            height: 0px;
+            overflow: hidden;
+        }
+        #dvApp{
+          height: 0px;
+          overflow: hidden;
+        }
+		
+		#div02{
+		 background:#302f2f;color:#FFF;height:100%;width:150px;float:left;font-family:微软雅黑;font-weight:lighter;font-size:13px;
+		}
+		#summary{
+		 background:;color:#FFF;height:50px;text-align:center;position:relative;
+		}
+		#list02{
+		 color:#FFF;height:50px;text-align:center;position:relative;
+		}
+		#user0{
+		 color:#FFF;height:50px;text-align:center;background:;position:relative;
+		}
+		#app{
+		 color:#FFF;height:50px;text-align:center;
+		}
+		
+		#div04{
+		  background:#f8f8ff;height:100%;float:left;
+		}
+		
+		#summaryImag{
+		  width:17%;height:80%;margin-top:2%;margin-left:10%;float:left
+		  }
+		  #listImag{
+		    width:17%;height:80%;margin-top:2%;margin-left:10%;float:left
+		  }
+		  #userImag{
+		   width:17%;height:80%;margin-top:2%;margin-left:10%;float:left
+		  }
+		  #downImag{
+		   width:17%;height:80%;margin-top:2%;margin-left:%;float:right
+		  }
+		  #appDownImag{
+		     width:17%;height:80%;margin-top:2%;margin-left:%;float:right
+		  }
+		  #user02Imag{
+		     width:17%;height:100%;margin-top:%;margin-left:10%;float:left
+		  }
+		  #accessImag{
+		  width:17%;height:100%;margin-top:%;margin-left:10%;float:left
+		  }
+		  #dataImag{
+		  width:17%;height:100%;margin-top:%;margin-left:10%;float:left
+		  }
+		  #appImag{
+		    width:17%;height:80%;margin-top:2%;margin-left:10%;float:left
+		  }
+		  #versionImag{
+		    width:17%;height:80%;margin-top:2%;margin-left:10%;float:left
+		  }
+		  
+		  #div01-1-1{
+		    float:left;width:16%;height:60%;margin-top:6%;margin-left:8%
+		  }
+		   #div01-1-2{
+		    float:left;background:;margin-top:7.5%;font-family:微软雅黑;font-weight:lighter;font-size:15px;
+		  }
+		  #user02Imagfo{
+		  width:50%;height:50%;float:left;
+		  }
+		  #accessImagfo{
+		  width:50%;height:50%;float:left;
+		  }
+		  #dataImagfo{
+		  width:50%;height:50%;float:left;
+		  }
+		  #versionImagfo{
+		  width:50%;height:50%;float:left;
+		  }
+		  #EquipmentList{ 
+		    color:#FFF;
+		    text-decoration:none;
+		  }
+		  #list02Str{
+		    width:100%;
+		    height:40%;
+		    margin: auto; 
+		    position: absolute;  
+		    top: 0; 
+		    left: 0; 
+		    bottom: 0; 
+		    right: 0;
+		  }
+		  #listfont{
+		    width:50%;
+		    height:100%;
+		    float:left;
+		  }
+		  #summaryStr{
+		   width:100%;
+		   height:40%;
+		   margin: auto;  
+		   position: absolute;  
+		   top: 0; 
+		   left: 0; 
+		   bottom: 0; 
+		   right: 0;
+		  }
+		  #summaryfont{
+		    width:50%;
+		    height:100%;
+		    float:left;
+		  }
+		  #summaryhref{
+		    color:#FFF;
+		    text-decoration:none;
+		  }
+		  #appListhref{
+		    olor:#FFF;
+		    text-decoration:none;
+		  }
+		  #app{
+		   background:;
+		   position:relative;
+		  }
+		  #appStr{
+		   width:100%;
+		   height:40%;
+		   margin: auto;  
+		   position: absolute;  
+		   top: 0; 
+		   left: 0; 
+		   bottom: 0; 
+		   right: 0;
+		  }
+		  #appfont{
+		    width:50%;
+		    height:100%;
+		    float:left;
+		  }
+		  #div02-4-1{
+		   width:150px;
+		   height:40px;
+		   background:#515151;
+		  }
+		  #div02-4-1-1{
+		    width:100%;
+		    height:25px;
+		    padding-top:15px;
+		    background:;
+		    position:relative;
+		  }
+		  #versiond{
+		    width:96%;
+		    height:40%;
+		    margin: auto;  
+		    position: absolute;  
+		    top: 0; 
+		    left: 10px; 
+		    bottom: 0; 
+		    right: 0;
+		  }
+		  #versionhref{
+		    color:#FFF;
+		    text-decoration:none;
+		    font-size:12px;
+		  }
+		  #userhref{
+		    color:#FFF;text-decoration:none;
+		  }
+		  #userStr{
+		    width:100%;
+		    height:40%;
+		    margin: auto;  
+		    position: absolute;  
+		    top: 0; 
+		    left: 0; 
+		    bottom: 0; 
+		    right: 0;
+		  }
+		  #userfont{
+		    width:50%;
+		    height:100%;
+		    float:left;
+		  } 
+		  #div02-3-2{
+		    width:150px;
+		    height:115px;
+		    background:#515151;
+		  }
+		  #div02-3-2-1{
+		    width:100%;
+		    height:25px;
+		    padding-top:15px;
+		    background:;
+		    position:relative;
+		  }
+		  #div02-3-2-1Str{
+		    width:96%;
+		    height:40%;
+		    margin: auto;  
+		    position: absolute;  
+		    top: 0; 
+		    left: 10px; 
+		    bottom: 0; 
+		    right: 0;
+		  }
+		  #div02-3-2-1href{ 
+		    color:#FFF;
+		    text-decoration:none;
+		    font-size:12px;
+		  }
+		  #div02-3-2-2{
+		    width:100%;
+		    height:25px;
+		    padding-top:15px;
+		    background:;
+		    position:relative;
+		  }
+		  #div02-3-2-2Str{
+		    width:96%;
+		    height:40%;
+		    margin: auto;  
+		    position: absolute;  
+		    top: 0; 
+		    left: 10px; 
+		    bottom: 0; 
+		    right: 0;
+		  }
+		  #div02-3-2-2href{
+		    color:#FFF;
+		    text-decoration:none;
+		    font-size:12px;
+		  
+		  }
+		  #div02-3-2-3{
+		    width:100%;
+		    height:25px;
+		    padding-top:15px;
+		    background:;
+		    position:relative;
+		  }
+		  #div02-3-2-3Str{
+		    width:96%;
+		    height:40%;
+		    margin: auto;  
+		    position: absolute;  
+		    top: 0; 
+		    left: 10px; 
+		    bottom: 0; 
+		    right: 0;
+		  }
+		  #div02-3-2-3href{
+		    color:#FFF;
+		    text-decoration:none;
+		    font-size:12px;
+		  }
+		  #ifr1{
+		    width:100%;
+		    height:100%
+		  }

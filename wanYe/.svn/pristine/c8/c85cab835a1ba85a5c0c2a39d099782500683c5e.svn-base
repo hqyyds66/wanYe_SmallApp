@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+     <bean id="timingdao" class="com.mindor.dao.impl.Timingimpl">
+	   <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="timingService" class="com.mindor.serivce.serviceimpl.TimingServiceimpl">
+	   <property name="timingdao" ref="timingdao"></property>
+	</bean>
+	
+	<bean id="wanYeApiTiming" class="com.mindor.api.WanYeApiTiming" scope="prototype">
+	   <property name="timingService" ref="timingService"></property>
+	</bean>
+</beans>

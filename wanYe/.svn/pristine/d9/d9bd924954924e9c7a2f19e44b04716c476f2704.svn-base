@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+	<import resource="applicationContext-db.xml"/>
+	<import resource="applicationContext-Equipment.xml"/>
+	<import resource="applicationContext-Product.xml"/>     
+	<import resource="applicationContext-EquipmentModel.xml"/> 
+	<import resource="applicationContext-App.xml"/>   
+	<import resource="applicationContext-Timing.xml"/>  
+	<import resource="applicationContext-TimeDelay.xml"/>  
+	<import resource="applicationContext-ChargeGuard.xml"/>
+	<import resource="applicationContext-Message.xml"/>  
+	<import resource="applicationContext-User.xml"/>
+	<import resource="applicationContext-PowerCount.xml"/>
+	<import resource="applicationContext-Infrared.xml"/>
+	<import resource="applicationContext-RF.xml"/>
+	<bean id="SpringContextUtil" class="com.mindor.util.SpringContextUtil" scope="singleton"></bean>   
+</beans>

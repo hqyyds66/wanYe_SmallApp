@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<!--
+		描述一个持久化类 name属性为持久化类的全名 table 该持久化类对应的表名 默认情况下为类名 catalog 为数据库的名称
+	-->
+	<class name="com.mindor.entity.Timing" table="Timing">
+		<!--
+			id对应表中的主键 name为持久化类中属性的名称 length 为对应数据库表中相应字段的长度 column
+			属性的名称对应的表的字段名称 不写则默认和属性的名称一致
+		-->
+		<id name="timingId" length="11" type="java.lang.Integer" column="timingId">
+			<!-- 
+				主键的生成器
+			 -->
+			<generator class="identity"></generator>
+		</id>
+		<property name="beginTime" column="beginTime" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="endTime" column="endTime" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="repeatTime" column="repeatTime" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="state" column="state" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="equipmentId" column="equipmentId" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="userId" column="userId" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="productId" column="productId" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="openIf" column="openIf" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="colseIf" column="colseIf" type="java.lang.String"
+			length="128">
+		</property>
+		<property name="timeDelayId" column="timeDelayId" type="java.lang.Integer"
+			length="128">
+		</property>
+		<property name="over" column="over" type="java.lang.String"
+			length="128">  
+		</property>
+		<property name="taskIDFromApp" column="taskIDFromApp" type="java.lang.Integer"
+			length="12">
+		</property>
+	</class>
+</hibernate-mapping>

@@ -1,0 +1,257 @@
+package com.mindor.api;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sf.json.JsonConfig;
+import net.sf.json.util.CycleDetectionStrategy;
+
+import org.apache.struts2.ServletActionContext;
+
+import com.mindor.entity.Equipment;
+import com.mindor.entity.OpenUser;
+import com.mindor.entity.Product;
+import com.mindor.entity.Product_equipment;
+import com.mindor.serivce.EquipmentService;
+import com.mindor.serivce.MessageManageService;
+import com.mindor.serivce.ProductService;
+import com.opensymphony.xwork2.ActionSupport;
+
+@SuppressWarnings("serial")
+public class WanYeApiProduct extends ActionSupport {
+
+	private EquipmentService equipmentService;
+	private MessageManageService messageManageService;
+
+	public EquipmentService getEquipmentService() {
+		return equipmentService;
+	}
+
+	public MessageManageService getMessageManageService() {
+		return messageManageService;
+	}
+
+	public void setMessageManageService(
+			MessageManageService messageManageService) {
+		this.messageManageService = messageManageService;
+	}
+
+	public void setEquipmentService(EquipmentService equipmentService) {
+		this.equipmentService = equipmentService;
+	}
+
+	private ProductService productService;
+	@SuppressWarnings("unused")
+	private int code;
+	@SuppressWarnings("unused")
+	private String Message;
+	OpenUser OpenUser = new OpenUser();
+	Equipment equipment = new Equipment();
+	Product product = new Product();
+
+	/**
+	 * 产品列表
+	 * 
+	 * @throws IOException
+	 */
+	public void loadProduct() throws IOException {
+		// 提供了一个过滤作用，如果遇到关联的对象时他会自动过滤掉，不去执行关联关联所关联的对象。
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setExcludes(new String[] { "equipment" });// 在这里添加要过滤的属性名
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType(
+				"text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+
+		int start = 0;
+		int pageSize = 10;
+		JSONObject json = new JSONObject();
+
+		String startString = ServletActionContext.getRequest().getParameter(
+				"start");
+		String pageCountString = ServletActionContext.getRequest()
+				.getParameter("pageSize");
+		String userId = ServletActionContext.getRequest()
+				.getParameter("userId");
+		// setEquipmentState();
+		if (startString != null) {
+			start = Integer.parseInt(startString);
+		}
+		if (pageCountString != null) {
+			pageSize = Integer.parseInt(pageCountString);
+		}
+
+		start = start + 1;
+
+		String sql = "SELECT COUNT(*),a.*,b.`equipmentId`,b.equipmentState FROM `product` a,`equipment` b,`openuser` c,`intermediate` d WHERE  a.`productId`=d.`productId` AND b.`equipmentId`=d.`equipmentId` AND c.`userId`=d.`userId` AND c.`userId`='"
+				+ userId + "' GROUP BY a.`productId`";
+		String sqlOnline = "SELECT COUNT(*),a.productId FROM `product` a,`equipment` b,`openuser` c,`intermediate` d WHERE  a.`productId`=d.`productId` AND b.`equipmentId`=d.`equipmentId` AND c.`userId`=d.`userId` AND c.`userId`='"
+				+ userId + "' and b.equipmentState='2' GROUP BY a.`productId`";
+		List<Object> list = productService.selectProducts(sql, start, pageSize);
+		List<Object> sqlOnlineList = productService.selectProducts(sqlOnline,
+				start, pageSize);
+		// System.out.println("list=========="+list);
+		Product_equipment product_equipment = null;// 创建实体类
+		List<Product_equipment> mylist = new LinkedList<Product_equipment>();
+
+		Iterator<Object> it = list.iterator();
+
+		while (it.hasNext()) {
+			int online = 0;// 在线数
+			product_equipment = new Product_equipment();
+			Object[] objs = (Object[]) it.next();
+
+			Iterator<Object> it02 = sqlOnlineList.iterator();
+			while (it02.hasNext()) {
+				Object[] objs02 = (Object[]) it02.next();
+				if (String.valueOf(objs[1]).equals(objs02[1])) {
+					online = Integer.parseInt(objs02[0].toString());
+				}
+//				System.out.println("objs02=======" + objs02[0]);
+//				System.out.println("objs02=======" + objs02[1]);
+			}
+			product_equipment.setEquipmentCount(String.valueOf(objs[0]));
+			product_equipment.setOnlineCount(String.valueOf(online));
+			product_equipment.setProductId(String.valueOf(objs[1]));
+			product_equipment.setProductName(String.valueOf(objs[2]));
+			product_equipment.setIndustry(String.valueOf(objs[3]));
+			product_equipment.setCategory(String.valueOf(objs[4]));
+			product_equipment.setCategory02(String.valueOf(objs[5]));
+			product_equipment.setCategory03(String.valueOf(objs[6]));
+			product_equipment.setIntroduce(String.valueOf(objs[3]));
+			product_equipment.setDate(String.valueOf(objs[7]));
+			product_equipment.setProductImage(String.valueOf(objs[10]));
+			product_equipment.setProductIcon(String.valueOf(objs[11]));
+			mylist.add(product_equipment);
+		}
+
+		JSONArray jsonObject = null;
+
+		jsonObject = JSONArray.fromObject(mylist, jsonConfig);// 转json
+		json.put("code", 200);
+		json.put("Message", "SUCCESS");
+		json.put("data", jsonObject);
+		out.print(json);
+		out.flush();
+		out.close();
+		System.gc();// 执行垃圾回收
+	}
+
+	/**
+	 *@author huangqin 设备总数，设备在线总数统计 Apr 26, 2019
+	 * @throws IOException
+	 */
+	@SuppressWarnings("unchecked")
+	public void equipmentStatistical() throws IOException {
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setExcludes(new String[] { "equipment" });// 在这里添加要过滤的属性名
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType(
+				"text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+
+		JSONObject json = new JSONObject();
+		JSONObject json02 = new JSONObject();
+		String userId = ServletActionContext.getRequest()
+				.getParameter("userId");
+		int code;
+		String Message;
+
+		if (userId == null || userId == "") {
+			code = 500;
+			Message = "用户id为空！";
+			json.put("code", code);
+			json.put("Message", Message);
+		} else {
+			String sql = "SELECT b.equipmentState FROM `product` a,`equipment` b,`openuser` c,`intermediate` d WHERE  a.`productId`=d.`productId` AND b.`equipmentId`=d.`equipmentId` AND c.`userId`=d.`userId` AND c.`userId`='"
+					+ userId + "'";
+			List<Object> list = productService.selectProductBysql(sql);
+			Boolean readIf = messageManageService.readIfs(userId);
+			Iterator<Object> it = list.iterator();
+			int online = 0;// 在线数
+			while (it.hasNext()) {
+				int objs = (Integer) it.next();
+				if (objs == 2) {
+					online = online + 1;
+				}
+			}
+			json02.put("equipmentCount", list.size());
+			json02.put("onlineCount", online);
+			json02.put("readIf", readIf);
+			code = 200;
+			Message = "SUCCESS";
+			json.put("code", code);
+			json.put("Message", Message);
+			json.put("data", json02);
+		}
+		out.print(json);
+		out.flush();
+		out.close();
+		System.gc();// 执行垃圾回收
+	}
+
+	/**
+	 *@author huangqin 查询所有产品分类 Mar 28, 2019
+	 * @throws IOException
+	 */
+	public void productCategories() throws IOException {
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setExcludes(new String[] { "equipment" });// 在这里添加要过滤的属性名
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType(
+				"text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+
+		JSONObject json = new JSONObject();
+		JSONArray jsonObject = new JSONArray();
+		List<Object> productList = productService.selectProductAll();
+
+		System.out.println("Productlist=============" + productList);
+
+		Product_equipment product_equipment = null;// 创建实体类
+		List<Product_equipment> mylist = new LinkedList<Product_equipment>();
+		for (int i = 0; i < productList.size(); i++) {
+
+			product = (Product) productList.get(i);
+			product_equipment = new Product_equipment();
+
+			product_equipment.setProductId(product.getProductId());
+			product_equipment.setProductName(String.valueOf(product
+					.getProductName()));
+			product_equipment
+					.setIndustry(String.valueOf(product.getIndustry()));
+			product_equipment
+					.setCategory(String.valueOf(product.getCategory()));
+			product_equipment.setDate(String.valueOf(product.getDate()));
+			product_equipment.setProductImage(String.valueOf(product
+					.getProductImage()));
+			product_equipment.setProductIcon(String.valueOf(product
+					.getProductIcon()));
+			mylist.add(product_equipment);
+		}
+		jsonObject = JSONArray.fromObject(mylist, jsonConfig);// 转json
+		json.put("code", 200);
+		json.put("Message", "SUCCESS");
+		json.put("data", jsonObject);
+		out.print(json);
+		out.flush();
+		out.close();
+	}
+
+	public ProductService getProductService() {
+		return productService;
+	}
+
+	public void setProductService(ProductService productService) {
+		this.productService = productService;
+	}
+
+}

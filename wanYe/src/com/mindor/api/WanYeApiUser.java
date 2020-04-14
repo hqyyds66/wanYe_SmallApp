@@ -1,0 +1,941 @@
+package com.mindor.api;
+
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.struts2.ServletActionContext;
+
+import com.mindor.action.AesCbcUtil;
+import com.mindor.action.HttpRequest;
+import com.mindor.entity.ClientId;
+import com.mindor.entity.OpenUser;
+import com.mindor.serivce.UserService;
+import com.mindor.util.RedisUtil;
+import com.opensymphony.xwork2.ActionSupport;
+import com.vdurmont.emoji.EmojiParser;
+
+import net.sf.json.JSONObject;
+import net.sf.json.JsonConfig;
+import net.sf.json.util.CycleDetectionStrategy;
+import redis.clients.jedis.Jedis;
+
+@SuppressWarnings("serial")
+public class WanYeApiUser extends ActionSupport {
+
+	private int code;
+	private String Message;
+	private UserService userService;
+
+	public UserService getUserService() {
+		return userService;
+	}
+
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
+
+	/**
+	 * @author huangqin app下载 Apr 4, 2019
+	 */
+	public String appDownload() {
+		return "appDownload";
+	}
+	
+	public String mall() {
+		return "mall";
+	}
+	
+	/**
+	 *@author huangqin
+	 *  redis 数据库测试连接
+	 * 2020年3月3日
+	 */
+	public void testRedis() {
+		RedisUtil redisUtil=new RedisUtil();
+		Jedis jedis=redisUtil.getJedis();
+	};
+	
+
+	@SuppressWarnings("unchecked")
+	public void decodeUserInfo() throws IOException {
+		JSONObject json = new JSONObject();
+		ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+		String encryptedData = ServletActionContext.getRequest().getParameter("encryptedData");
+		String iv = ServletActionContext.getRequest().getParameter("iv");
+		String code = ServletActionContext.getRequest().getParameter("code");
+
+		if (code == null || code.length() == 0) {
+			json.put("status", 0);
+			json.put("msg", "code 不能为空");
+		} else {
+			// 小程序唯一标识 (在微信小程序管理后台获取)
+			String wxspAppid = "wx90d65d05340f865a";
+			// 小程序的 app secret (在微信小程序管理后台获取)
+			String wxspSecret = "782c4807fb1aaba161800e134248f471";
+			// 授权（必填）
+			String grant_type = "authorization_code";
+
+			//////////////// 1、向微信服务器 使用登录凭证 code 获取 session_key 和 openid ////////////////
+			// 请求参数
+			String params = "appid=" + wxspAppid + "&secret=" + wxspSecret + "&js_code=" + code + "&grant_type="
+					+ grant_type;
+			System.out.println("params================" + params);
+			// 发送请求
+			String sr = HttpRequest.sendGet("https://api.weixin.qq.com/sns/jscode2session", params);
+			// 解析相应内容（转换成json对象）
+			System.out.println("sr================" + sr);
+			JSONObject json01 = JSONObject.fromObject(sr);
+			// 获取会话密钥（session_key）
+			String session_key = json01.get("session_key").toString();
+			// 用户的唯一标识（openid）
+			String openid = (String) json01.get("openid");
+			
+			System.out.println("openid===="+openid);
+
+			try {
+				String result = AesCbcUtil.decrypt(encryptedData, session_key, iv, "UTF-8");
+				if (null != result && result.length() > 0) {
+					json.put("status", 1);
+					json.put("msg", "解密成功");
+
+					JSONObject userInfoJSON = JSONObject.fromObject(result);
+					
+					System.out.println("userInfoJSON===="+userInfoJSON);
+					
+					Map userInfo = new HashMap();
+					userInfo.put("openId", userInfoJSON.get("openId"));
+					userInfo.put("nickName", userInfoJSON.get("nickName"));
+					userInfo.put("gender", userInfoJSON.get("gender"));
+					userInfo.put("city", userInfoJSON.get("city"));
+					userInfo.put("province", userInfoJSON.get("province"));
+					userInfo.put("country", userInfoJSON.get("country"));
+					userInfo.put("avatarUrl", userInfoJSON.get("avatarUrl"));
+					userInfo.put("unionId", userInfoJSON.get("unionId"));
+					json.put("userInfo", userInfo);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		out.print(json);
+		out.flush();
+		out.close();
+	}
+
+	public void exportVehicleInfo() {
+		String filename = ServletActionContext.getRequest().getParameter("apk");
+
+		System.out.println("filename======" + filename);
+		DataInputStream in = null;
+		OutputStream out = null;
+		try {
+			ServletActionContext.getResponse().reset();// 清空输出流
+
+			String resultFileName = filename + System.currentTimeMillis() + ".apk";
+			resultFileName = URLEncoder.encode(resultFileName, "UTF-8");
+			ServletActionContext.getResponse().setCharacterEncoding("UTF-8");
+			ServletActionContext.getResponse().setHeader("Content-disposition",
+					"attachment; filename=" + resultFileName);// 设定输出文件头
+			ServletActionContext.getResponse().setContentType("application/msexcel");// 定义输出类型
+			// 输入流：本地文件路径
+			in = new DataInputStream(
+					new FileInputStream(new File("C:\\Users\\Administrator\\Desktop\\" + "mindor.apk")));
+			// 输出流
+			out = ServletActionContext.getResponse().getOutputStream();
+			// 输出文件
+			int bytes = 0;
+			byte[] bufferOut = new byte[1024];
+			while ((bytes = in.read(bufferOut)) != -1) {
+				out.write(bufferOut, 0, bytes);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			ServletActionContext.getResponse().reset();
+			try {
+				OutputStreamWriter writer = new OutputStreamWriter(ServletActionContext.getResponse().getOutputStream(),
+						"UTF-8");
+				String data = "<script language='javascript'>alert(\"\\u64cd\\u4f5c\\u5f02\\u5e38\\uff01\");</script>";
+				writer.write(data);
+				writer.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		} finally {
+			if (null != in) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (null != out) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	/**
+	 * app第三方登录接口
+	 * 
+	 * @throws IOException
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void appLogin() throws IOException {
+		JSONObject json = new JSONObject();
+		ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+
+		String thirdPartyId = ServletActionContext.getRequest().getParameter("thirdPartyId");
+		String nickName = ServletActionContext.getRequest().getParameter("nickName");
+		String sex = ServletActionContext.getRequest().getParameter("sex");
+		String birthday = ServletActionContext.getRequest().getParameter("birthday");
+		String address = ServletActionContext.getRequest().getParameter("address");
+		String headPortrait = ServletActionContext.getRequest().getParameter("headPortrait");
+		String phone = ServletActionContext.getRequest().getParameter("phone");
+		String password = ServletActionContext.getRequest().getParameter("passWord");
+		String otherId = ServletActionContext.getRequest().getParameter("otherId");
+		
+		String unionId = ServletActionContext.getRequest().getParameter("unionId");
+		
+		System.out.println("unionid============================="+unionId);
+
+		//小程序
+		String hql = "select a from  OpenUser a where a.unionId='" + unionId + "'";
+		
+		//app
+//		String hql = "select a from  OpenUser a where a.ThirdPartyId='" + thirdPartyId + "'";
+		
+		OpenUser openUserInit = new OpenUser();
+		List<Object> appList = userService.openUsers(hql);
+		// Query q=session.createQuery(sql);
+		// List<Object> appList=q.list();
+
+		if (appList.size() > 0) {// 已注册
+			OpenUser openUser = new OpenUser();
+			openUser = (OpenUser) appList.get(0);
+			String ClientId = getClientId(otherId, openUser.getUserId());
+			HashMap map = new HashMap();
+			map.put("userId", openUser.getUserId());
+			map.put("nickName", openUser.getNickName());
+			map.put("sex", openUser.getSex());
+			map.put("birthday", openUser.getBirthday());
+			map.put("address", openUser.getAddress());
+			map.put("headPortrait", openUser.getHeadPortrait());
+			map.put("phone", openUser.getPhone());
+			map.put("ClientId", ClientId);
+
+			Message = SUCCESS;// 成功后返回状态
+			code = 200; // 返回成功状态码
+			json.put("Message", Message);
+			json.put("code", code);
+			json.put("data", map);
+
+		} else {// 未注册
+			if (nickName != null && nickName != "") {
+				nickName = EmojiParser.removeAllEmojis(nickName);
+			}
+			String appId;
+			String hqlIds = "SELECT a.userId FROM OpenUser a ORDER BY a.creatDate DESC";
+			// Query q02 =
+			// session.createQuery("SELECT a.userId FROM OpenUser a ORDER BY a.creatDate
+			// DESC");
+			// q02.setMaxResults(1);
+			List<String> a = userService.userIds(hqlIds);
+
+			if (a.size() == 0 || a.get(0) == null) {
+				appId = "minApp100001";
+			} else {
+				String b = a.toString();
+				b = b.substring(7, b.indexOf("]"));
+				int newId = Integer.parseInt(b) + 1;
+				appId = "minApp" + newId;
+
+			}
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+			String creationDate = String.valueOf(new Date().getTime());// new
+																		// Date()为获取当前系统时间，也可使用当前时间戳
+
+			String clientId = generateClientId(otherId, appId);
+
+			openUserInit.setUserId(appId);
+			openUserInit.setThirdPartyId(thirdPartyId);
+			openUserInit.setUnionId(unionId);
+			openUserInit.setNickName(nickName);
+			openUserInit.setSex(sex);
+			openUserInit.setBirthday(birthday);
+			openUserInit.setAddress(address);
+			openUserInit.setCreatDate(creationDate);
+			openUserInit.setHeadPortrait(headPortrait);
+			openUserInit.setPhone(phone);
+			openUserInit.setPassword(password);
+			Serializable serializable = userService.saveOpuser(openUserInit);
+
+			if (serializable.equals(appId)) {
+				OpenUser openUserlast = userService.selectOpUser(appId);
+				HashMap map = new HashMap();
+				map.put("userId", openUserlast.getUserId());
+				map.put("password", openUserlast.getPassword());
+				map.put("nickName", openUserlast.getNickName());
+				map.put("sex", openUserlast.getSex());
+				map.put("birthday", openUserlast.getBirthday());
+				map.put("address", openUserlast.getAddress());
+				map.put("headPortrait", openUserlast.getHeadPortrait());
+				map.put("phone", openUserlast.getPhone());
+				map.put("clientId", clientId);
+				Message = SUCCESS; // 成功后返回状态
+				code = 200; // 返回成功状态码
+				json.put("Message", Message);
+				json.put("code", code);
+				json.put("data", map);
+			} else {
+				Message = "登录失败！";// 失败后返回状态
+				code = 500; // 返回失败状态码
+				json.put("code", code);
+				json.put("Message", Message);
+			}
+		}
+		out.print(json);
+		out.flush();
+		out.close();
+	}
+
+	/**
+	 * 
+	 * 手机号注册
+	 * 
+	 * @throws IOException
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void phoneRegistered() throws IOException {
+
+		// 提供了一个过滤作用，如果遇到关联的对象时他会自动过滤掉，不去执行关联关联所关联的对象。
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+
+		JSONObject json = new JSONObject();
+
+		String hql = null;
+		int code = 0;
+
+		String phone = ServletActionContext.getRequest().getParameter("phone");
+		String password = ServletActionContext.getRequest().getParameter("passWord");
+
+		String nickName = ServletActionContext.getRequest().getParameter("nickName");
+		String sex = ServletActionContext.getRequest().getParameter("sex");
+		String birthday = ServletActionContext.getRequest().getParameter("birthday");
+		String address = ServletActionContext.getRequest().getParameter("address");
+		String headPortrait = ServletActionContext.getRequest().getParameter("headPortrait");
+
+		String otherId = ServletActionContext.getRequest().getParameter("otherId");
+		OpenUser openUserInit = new OpenUser();
+		String pwdStr = getMD5(password);// 密码加密
+
+		if (phone == null) {
+			Message = "手机号为空！";// 手机号为空返回状态
+			code = 500; // 手机号为空状态码
+			json.put("Message", Message);
+			json.put("code", code);
+		} else {
+
+			hql = "SELECT a FROM OpenUser a where a.phone='" + phone + "'";
+
+			List<Object> list;
+			list = userService.openUsers(hql);
+			System.out.print("list.size()=========" + list.size());
+			if (list.size() > 0) {// 已注册
+				Message = "该手机号已被注册";
+				code = 500;
+				json.put("Message", Message);
+				json.put("code", code);
+
+			} else {// 未注册
+				String appId;
+				String hqlIds = "SELECT a.userId FROM OpenUser a ORDER BY a.creatDate DESC";
+				List<String> a = userService.userIds(hqlIds);
+				if (a.size() == 0 || a.get(0) == null) {
+					appId = "minApp100001";
+				} else {
+					String b = a.toString();
+
+					b = b.substring(7, b.indexOf("]"));
+					int newId = Integer.parseInt(b) + 1;
+					appId = "minApp" + newId;
+				}
+				if (nickName != null && nickName != "") {
+					nickName = EmojiParser.removeAllEmojis(nickName);
+				}
+				String clientId = generateClientId(otherId, appId);
+				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+				String creationDate = String.valueOf(new Date().getTime());// new
+																			// Date()为获取当前系统时间，也可使用当前时间戳
+				openUserInit.setUserId(appId);
+				openUserInit.setNickName(nickName);
+				openUserInit.setSex(sex);
+				openUserInit.setBirthday(birthday);
+				openUserInit.setAddress(address);
+				openUserInit.setCreatDate(creationDate);
+				openUserInit.setHeadPortrait(headPortrait);
+				openUserInit.setPhone(phone);
+				openUserInit.setPassword(pwdStr);
+
+				HashMap map = new HashMap();
+				map.put("userId", appId);
+				map.put("nickName", nickName);
+				map.put("sex", sex);
+				map.put("birthday", birthday);
+				map.put("address", address);
+				map.put("headPortrait", headPortrait);
+				map.put("phone", phone);
+				map.put("clientId", clientId);
+
+				Serializable serializable = userService.saveOpuser(openUserInit);
+
+				// 将appID返回给app
+				if (serializable != null) {
+					Message = SUCCESS;// 成功后返回状态
+					code = 200; // 返回成功状态码
+					json.put("Message", Message);
+					json.put("code", code);
+					json.put("data", map);
+				} else {
+					Message = "注册失败！";// 失败后返回状态
+					code = 500; // 返回失败状态码
+					json.put("code", code);
+					json.put("Message", Message);
+				}
+			}
+		}
+		out.print(json);
+		out.flush();
+		out.close();
+	}
+
+	public static String getMD5(String str) {
+		try {
+			// 生成一个MD5加密计算摘要
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			// 计算md5函数
+			md.update(str.getBytes());
+			// digest()最后确定返回md5 hash值，返回值为8为字符串。因为md5 hash值是16位的hex值，实际上就是8位的字符
+			// BigInteger函数则将8位的字符串转换成16位hex值，用字符串来表示；得到字符串形式的hash值
+			return new BigInteger(1, md.digest()).toString(16);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * @author huangqin 生成客户端id May 28, 2019
+	 */
+	public String generateClientId(String otherId, String userId) throws IOException {
+
+		String clientIdStr = null;
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+		String creationDate = df.format(new Date());// new
+													// Date()为获取当前系统时间，也可使用当前时间戳
+
+		String hqlIds = "SELECT a.clientId FROM ClientId a ORDER BY a.creationDate DESC";
+
+		List<String> aStr = userService.userIds(hqlIds);
+		// List aStr=q03.list();
+		if (aStr.size() == 0 || aStr.get(0) == null) {
+			clientIdStr = "clientId100001";
+		} else {
+			String b = aStr.toString();
+
+			b = b.substring(9, b.indexOf("]"));
+			int newId = Integer.parseInt(b) + 1;
+			clientIdStr = "clientId" + newId;
+		}
+
+		ClientId clientId = new ClientId();
+		clientId.setOtherId(otherId);
+		clientId.setUserId(userId);
+		clientId.setClientId(clientIdStr);
+		clientId.setCreationDate(creationDate);
+
+		userService.upaClientId(clientId);
+		// session.saveOrUpdate(clientId);
+		return clientIdStr;
+	}
+
+	@SuppressWarnings("rawtypes")
+	public String getClientId(String otherId, String userId) throws IOException {
+		String clientIdStr = null;
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+		String hql = "SELECT a.clientId FROM ClientId a where a.otherId='" + otherId + "' and a.userId='" + userId
+				+ "'";
+		// List aStr=q03.list();
+		List aStr = userService.openUsers(hql);
+		if (aStr.size() > 0) {
+			clientIdStr = aStr.get(0).toString();
+		} else {
+			clientIdStr = generateClientId(otherId, userId);
+		}
+		return clientIdStr;
+	}
+
+	/**
+	 * @author huangqin 手机或账号登录 Mar 28, 2019
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void appPhoneLogin() throws IOException {
+		// 提供了一个过滤作用，如果遇到关联的对象时他会自动过滤掉，不去执行关联关联所关联的对象。
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+
+		JSONObject json = new JSONObject();
+		String hql = null;
+		int code = 0;
+
+		String phone = ServletActionContext.getRequest().getParameter("phone");
+		String parameter = ServletActionContext.getRequest().getParameter("parameter");
+		String password = ServletActionContext.getRequest().getParameter("passWord");
+		String otherId = ServletActionContext.getRequest().getParameter("otherId");
+
+		password = getMD5(password);
+
+		if (phone != null) {
+			hql = "SELECT a FROM OpenUser a where  a.phone='" + phone + "'";
+		} else {
+			hql = "SELECT a FROM OpenUser a where a.password='" + password + "' and( a.phone='" + parameter
+					+ "' or a.userId='" + parameter + "')";
+		}
+		List<Object> list = userService.openUsers(hql);
+
+		if (list.size() > 0) {// 登录成功
+			OpenUser openUser = (OpenUser) list.get(0);
+			String appId = openUser.getUserId();
+			String nickName = openUser.getNickName();
+			String sex = openUser.getSex();
+			String birthday = openUser.getBirthday();
+			String address = openUser.getAddress();
+			String headPortrait = openUser.getHeadPortrait();
+			String phone02 = openUser.getPhone();
+
+			String ClientId = getClientId(otherId, appId);
+
+			HashMap map = new HashMap();
+			map.put("userId", appId);
+			map.put("nickName", nickName);
+			map.put("sex", sex);
+			map.put("birthday", birthday);
+			map.put("address", address);
+			map.put("headPortrait", headPortrait);
+			map.put("phone", phone02);
+			map.put("ClientId", ClientId);
+
+			Message = "登录成功";// 成功后返回状态
+			code = 200; // 返回已注册状态码
+			json.put("Message", Message);
+			json.put("code", code);
+			json.put("data", map);
+		} else {
+			if (phone != null) {
+				Message = "该手机号未注册";
+			} else {
+				Message = "用户名或密码错误！";
+			}
+			code = 500;
+			json.put("code", code);
+			json.put("Message", Message);
+
+		}
+		out.print(json);
+		out.flush();
+		out.close();
+	}
+
+	/**
+	 * @author huangqin 更新用户 Mar 28, 2019
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void updateUser() throws IOException {
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+		ServletActionContext.getResponse().setCharacterEncoding("UTF-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+
+		JSONObject json = new JSONObject();
+
+		OpenUser openUser = new OpenUser();
+		String userId = ServletActionContext.getRequest().getParameter("userId");
+		openUser = userService.selectOpUser(userId);
+		HashMap map = new HashMap();
+
+		String phone = ServletActionContext.getRequest().getParameter("phone");
+		String nickName = ServletActionContext.getRequest().getParameter("nickName");
+		String sex = ServletActionContext.getRequest().getParameter("sex");
+		String birthday = ServletActionContext.getRequest().getParameter("birthday");
+		String address = ServletActionContext.getRequest().getParameter("address");
+		String password = ServletActionContext.getRequest().getParameter("passWord");
+
+		if (phone != null && phone != "") {
+			if (password == null || password == "") {
+				String hql = "select e from OpenUser e where  e.phone='" + phone + "'";
+				List<Object> a = userService.openUsers(hql);
+				if (a.size() > 0) {
+					Message = "该手机号已被绑定！";// 成功后返回状态
+					code = 500; // 返回已注册状态码
+				} else {
+					map.put("userId", userId);
+					map.put("nickName", openUser.getNickName());
+					map.put("sex", openUser.getSex());
+					map.put("birthday", openUser.getBirthday());
+					map.put("address", openUser.getAddress());
+					map.put("phone", phone);
+					map.put("headPortrait", openUser.getHeadPortrait());
+					json.put("data", map);
+					Message = "修改成功";// 成功后返回状态
+					code = 200; // 返回已注册状态码
+					openUser.setPhone(phone);
+				}
+			}
+		}
+
+		if (password != null && password != "") {
+			if (phone != null && phone != "") {
+				if (openUser.getPhone().length() > 0) {
+					if (openUser.getPhone().equals(phone)) {
+
+						String pwdStr = getMD5(password);// 密码加密
+
+						map.put("userId", userId);
+						map.put("nickName", openUser.getNickName());
+						map.put("sex", openUser.getSex());
+						map.put("birthday", openUser.getBirthday());
+						map.put("address", openUser.getAddress());
+						map.put("phone", openUser.getPhone());
+						map.put("headPortrait", openUser.getHeadPortrait());
+						json.put("data", map);
+						openUser.setPhone(phone);
+						openUser.setPassword(pwdStr);
+
+						Message = "新增密码成功！";// 成功后返回状态
+						code = 200; // 返回已注册状态码
+
+					} else {
+						Message = "手机号和已绑定手机号不一致！";// 成功后返回状态
+						code = 500; // 返回已注册状态码
+					}
+
+				} else {
+
+					String pwdStr = getMD5(password);// 密码加密
+					map.put("userId", userId);
+					map.put("nickName", openUser.getNickName());
+					map.put("sex", openUser.getSex());
+					map.put("birthday", openUser.getBirthday());
+					map.put("address", openUser.getAddress());
+					map.put("phone", phone);
+					map.put("headPortrait", openUser.getHeadPortrait());
+					json.put("data", map);
+					openUser.setPhone(phone);
+					openUser.setPassword(pwdStr);
+
+					Message = "新增密码成功！";// 成功后返回状态
+					code = 200; // 返回已注册状态码
+				}
+			} else {
+				Message = "手机号为空！";// 成功后返回状态
+				code = 500; // 返回已注册状态码
+			}
+		}
+
+		if (nickName != null && nickName != "") {
+			System.out.println("nickName======" + nickName);
+			if (nickName != null && nickName != "") {
+				nickName = EmojiParser.removeAllEmojis(nickName);
+			}
+			map.put("userId", userId);
+			map.put("nickName", nickName);
+			map.put("sex", openUser.getSex());
+			map.put("birthday", openUser.getBirthday());
+			map.put("address", openUser.getAddress());
+			map.put("phone", openUser.getPhone());
+			map.put("headPortrait", openUser.getHeadPortrait());
+			json.put("data", map);
+			Message = "修改成功";// 成功后返回状态
+			code = 200; // 返回已注册状态码
+			openUser.setNickName(nickName);
+		}
+
+		if (sex != null && sex != "") {
+			map.put("userId", userId);
+			map.put("nickName", openUser.getNickName());
+			map.put("sex", sex);
+			map.put("birthday", openUser.getBirthday());
+			map.put("address", openUser.getAddress());
+			map.put("phone", openUser.getPhone());
+			map.put("headPortrait", openUser.getHeadPortrait());
+			json.put("data", map);
+			Message = "修改成功";// 成功后返回状态
+			code = 200; // 返回已注册状态码
+			openUser.setSex(sex);
+		}
+
+		if (birthday != null && birthday != "") {
+			map.put("userId", userId);
+			map.put("nickName", openUser.getNickName());
+			map.put("sex", openUser.getSex());
+			map.put("birthday", birthday);
+			map.put("address", openUser.getAddress());
+			map.put("phone", openUser.getPhone());
+			map.put("headPortrait", openUser.getHeadPortrait());
+			json.put("data", map);
+			Message = "修改成功";// 成功后返回状态
+			code = 200; // 返回已注册状态码
+			openUser.setBirthday(birthday);
+		}
+
+		if (address != null && address != "") {
+			map.put("userId", userId);
+			map.put("nickName", openUser.getNickName());
+			map.put("sex", openUser.getSex());
+			map.put("birthday", openUser.getBirthday());
+			map.put("address", address);
+			map.put("phone", openUser.getPhone());
+			map.put("headPortrait", openUser.getHeadPortrait());
+			json.put("data", map);
+			Message = "修改成功";// 成功后返回状态
+			code = 200; // 返回已注册状态码
+			openUser.setAddress(address);
+		}
+
+		userService.upOpuser(openUser);
+
+		json.put("Message", Message);
+		json.put("code", code);
+
+		out.print(json);
+		out.flush();
+		out.close();
+
+	}
+
+	/**
+	 * @author huangqin 修改用户密码 Mar 28, 2019
+	 * @throws IOException
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void updatePassword() throws IOException {
+		// 提供了一个过滤作用，如果遇到关联的对象时他会自动过滤掉，不去执行关联关联所关联的对象。
+		JsonConfig jsonConfig = new JsonConfig();
+		jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+
+		ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+		PrintWriter out = ServletActionContext.getResponse().getWriter();
+
+		JSONObject json = new JSONObject();
+
+		int code = 0;
+
+		String password = ServletActionContext.getRequest().getParameter("passWord");
+		String newPassword = ServletActionContext.getRequest().getParameter("newPassword");
+		String userId = ServletActionContext.getRequest().getParameter("userId");
+
+		System.out.print("password=========" + password);
+
+		String hql = "SELECT a.password FROM OpenUser a where  a.userId='" + userId + "'";
+
+		List<String> password02 = userService.selectStr(hql);
+
+		System.out.println("password02===" + password02);
+
+		HashMap map = new HashMap();
+		if (password02.get(0) != null && password02.get(0) != "" && password02.get(0).length() > 0) {
+			String pws03Str = password02.get(0).toString();
+			String pwdStr = getMD5(password);
+			String newPwdStr = getMD5(newPassword);
+			if (password == null || password == "") {
+				Message = "进入修改密码页面！";
+				code = 200;
+				json.put("Message", Message);
+				json.put("code", code);
+				map.put("datacode", 0);
+				json.put("data", map);
+			} else {
+				if (pws03Str.equals(pwdStr)) {
+					OpenUser openUser = new OpenUser();
+					openUser = userService.selectOpUser(userId);
+					// openUser=(OpenUser) session.get(OpenUser.class, userId);
+					openUser.setPassword(newPwdStr);
+					userService.upOpuser(openUser);
+					Message = "修改密码成功！";
+					code = 200;
+					json.put("Message", Message);
+					json.put("code", code);
+				} else {
+					Message = "密码和原密码不一致！";
+					code = 500;
+					json.put("Message", Message);
+					json.put("code", code);
+				}
+			}
+
+		} else {
+			code = 200;
+			Message = "进入设置密码页面";
+			map.put("datacode", 1);
+			json.put("Message", Message);
+			json.put("code", code);
+			json.put("data", map);
+		}
+		out.print(json);
+		out.flush();
+		out.close();
+
+	}
+
+	public void lostPassword() throws IOException  {
+	    JsonConfig jsonConfig = new JsonConfig();
+	    jsonConfig.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+	    
+	    ServletActionContext.getResponse().setContentType("text/html;charset=utf-8");
+	    PrintWriter out = ServletActionContext.getResponse().getWriter();
+	    
+	    JSONObject json = new JSONObject();
+	    
+	    String hql = null;
+	    int code = 0;
+	    
+	    String newPassword = ServletActionContext.getRequest().getParameter("newPassword");
+	    String phone = ServletActionContext.getRequest().getParameter("phone");
+	    String userIdStr = ServletActionContext.getRequest().getParameter("userId");
+	    if ((userIdStr != null) && (userIdStr != ""))
+	    {
+	      List<String> phones = new ArrayList();
+	      hql = "SELECT a.phone FROM OpenUser a where  a.userId='" + userIdStr + "'";
+	      phones = this.userService.selectStr(hql);
+	      if (phones.size() != 0)
+	      {
+	        System.out.println("绑定的手机号是：" + (String)phones.get(0));
+	        if ((phones.get(0) != "") && (phones.get(0) != null) && (((String)phones.get(0)).length() > 0))
+	        {
+	          hql = "SELECT a.userId FROM OpenUser a where  a.phone='" + phone + "'";
+	          
+	          List<String> password = this.userService.selectStr(hql);
+	          
+	          String newPasStr = getMD5(newPassword);
+	          if (password.size() != 0)
+	          {
+	            String userId = ((String)password.get(0)).toString();
+	            OpenUser openUser = new OpenUser();
+	            openUser = this.userService.selectOpUser(userId);
+	            openUser.setPassword(newPasStr);
+	            this.userService.upOpuser(openUser);
+	            this.Message = "修改密码成功！";
+	            code = 200;
+	            json.put("Message", this.Message);
+	            json.put("code", Integer.valueOf(code));
+	          }
+	          else
+	          {
+	            code = 500;
+	            this.Message = "该手机号未注册！";
+	            json.put("Message", this.Message);
+	            json.put("code", Integer.valueOf(code));
+	          }
+	        }
+	        else
+	        {
+	          code = 500;
+	          this.Message = "您还未绑定手机号！";
+	          json.put("Message", this.Message);
+	          json.put("code", Integer.valueOf(code));
+	        }
+	      }
+	      else
+	      {
+	        code = 500;
+	        this.Message = "您还未绑定手机号！";
+	        json.put("Message", this.Message);
+	        json.put("code", Integer.valueOf(code));
+	      }
+	    }
+	    else
+	    {
+	      hql = "SELECT a.userId FROM OpenUser a where  a.phone='" + phone + "'";
+	      
+	      List<String> password = this.userService.selectStr(hql);
+	      
+	      String newPasStr = getMD5(newPassword);
+	      if (password.size() != 0)
+	      {
+	        String userId = ((String)password.get(0)).toString();
+	        OpenUser openUser = new OpenUser();
+	        openUser = this.userService.selectOpUser(userId);
+	        openUser.setPassword(newPasStr);
+	        this.userService.upOpuser(openUser);
+	        this.Message = "修改密码成功！";
+	        code = 200;
+	        json.put("Message", this.Message);
+	        json.put("code", Integer.valueOf(code));
+	      }
+	      else
+	      {
+	        code = 500;
+	        this.Message = "该手机号未注册！";
+	        json.put("Message", this.Message);
+	        json.put("code", Integer.valueOf(code));
+	      }
+	    }
+	    out.print(json);
+	    out.flush();
+	    out.close();
+	  }
+
+	/**
+	 * @author huangqin 生成客户端id May 28, 2019
+	 */
+	public String getRandom() {
+		String result = "";
+		// 下面的6改成8就是8位随机数字
+		while (result.length() < 7) {
+			String str = String.valueOf((int) (Math.random() * 10));
+			if (result.indexOf(str) == -1) {
+				result += str;
+			}
+		}
+		return result;
+	}
+
+}

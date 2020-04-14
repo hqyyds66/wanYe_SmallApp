@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+   <!--解决乱码    -->
+	    <constant name="struts.i18n.encoding" value="UTF-8"></constant>
+
+	<package name="WanyeApiApp" namespace="/" extends="struts-default,json-default">
+	   <action name="WanyeApiApp_*" method="{1}" class="com.mindor.api.WanYeApiApp">
+	      <result name="updatejson">/WEB-INF/updateApp/updateJson.jsp</result> 
+	      <result name="mall">/WEB-INF/appMall/mall.jsp</result>
+	   </action>
+	</package>
+</struts>

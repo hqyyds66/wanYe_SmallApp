@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<!--
+		描述一个持久化类 name属性为持久化类的全名 table 该持久化类对应的表名 默认情况下为类名 catalog 为数据库的名称
+	-->
+	<class name="com.mindor.entity.TmtData" table="TmtData">
+		<!--
+			id对应表中的主键 name为持久化类中属性的名称 length 为对应数据库表中相应字段的长度 column
+			属性的名称对应的表的字段名称 不写则默认和属性的名称一致
+		-->
+		<id name="TmtDataId" length="11" type="java.lang.Integer" column="TmtDataId">
+			<!-- 
+				主键的生成器
+			 -->
+			<generator class="identity"></generator>
+		</id>
+		
+		<property name="userId" column="userId" type="java.lang.String"
+			length="52">
+		</property>  
+		<property name="humOrThings" column="humOrThings" type="java.lang.String"
+			length="12">
+		</property>
+		<property name="equipmentId" column="equipmentId" type="java.lang.String"
+			length="52">
+		</property>
+		<property name="yearMonth" column="yearMonth" type="java.lang.String"
+			length="52">
+		</property>
+		<property name="hourMinute" column="hourMinute" type="java.lang.String"
+			length="52">
+		</property>
+		<property name="temp" column="temp" type="java.lang.String"
+			length="13">
+		</property>
+	
+	</class>
+</hibernate-mapping>

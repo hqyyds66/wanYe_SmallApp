@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+   <!--解决乱码    -->
+	    <constant name="struts.i18n.encoding" value="UTF-8"></constant>
+
+	<package name="equipment" namespace="/" extends="struts-default,json-default">
+	   <action name="equipment_*" method="{1}" class="com.mindor.action.EquipmentAction">
+	       <result name="success" type="json"><param name="success">equipmentLoad</param></result>
+	       <result name="returnCount" type="json"><param name="returnCount">returnCountimpl</param></result>  
+	       <result name="Basic" type="json"><param name="Basic">BasicData01</param></result> 
+	       
+	      <result name="HisData">/WEB-INF/Equipment/HisData.jsp</result>  
+	      <result name="HisCommand">/WEB-INF/Equipment/HisCommand.jsp</result>  
+	      <result name="RealTime">/WEB-INF/Equipment/RealTime.jsp</result>  
+	      <result name="EquipmentOverview">/WEB-INF/EquipmentOverview/EquipmentOverview.jsp</result>  
+	      <result name="EquipmentList">/WEB-INF/Equipment/load.jsp</result>  
+	      <result name="product">/WEB-INF/product/product.jsp</result>   
+	      <result name="dynamicData">/WEB-INF/Equipment/dynamicData.jsp</result>  
+	      <result name="equipmentMan">/WEB-INF/Equipment/EquipmentMan.jsp</result>
+	   </action>
+	</package>
+</struts>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/tx 
+           http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+     <bean id="rfdao" class="com.mindor.dao.impl.RFimpl">
+	   <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="rfService" class="com.mindor.serivce.serviceimpl.RFServiceimpl">
+	   <property name="rfdao" ref="rfdao"></property>
+	</bean>
+	
+	<bean id="wanYeApiRF" class="com.mindor.api.WanYeApiRF" scope="prototype">
+	   <property name="rfService" ref="rfService"></property>
+	</bean>
+</beans>

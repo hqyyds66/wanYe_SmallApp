@@ -1,0 +1,8 @@
+body {
+	--color-text:#0f070a;
+	--color-bg:#00c0ff;
+	--color-bg-2:#00aeff;
+	--color-link:#317bd0;
+	--color-link-hover:#00bfff;
+	background:radial-gradient(ellipse at 100% 0,#fff 0,var(--color-bg) 50%,var(--color-bg-2) 115%)
+}

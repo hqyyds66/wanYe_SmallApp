@@ -1,0 +1,172 @@
+package com.mindor.dao.impl;
+
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.springframework.orm.hibernate3.HibernateCallback;
+import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+
+import com.mindor.dao.Productdao;
+import com.mindor.entity.Equipment;
+import com.mindor.entity.Product;
+
+public class Productimpl extends HibernateDaoSupport implements Productdao {
+
+	@SuppressWarnings("unchecked")
+	public List<Object> query() {
+		List<Object> list = this.getHibernateTemplate().find("from Product");
+		return list;
+	}
+
+	public int deleteProduct(int productId) {
+		Product product = new Product();
+		product = getHibernateTemplate().get(Product.class, productId);
+		getHibernateTemplate().delete(product);
+		int size = 0;
+		return size;
+	}
+
+	@SuppressWarnings( { "unchecked", "rawtypes" })
+	public int updateProduct(final String hql) {
+		int size = (int) getHibernateTemplate().execute(new HibernateCallback() {
+			public Object doInHibernate(Session session)
+					throws HibernateException, SQLException {
+				// TODO Auto-generated method stub
+				final int sizei = session.createQuery(hql).executeUpdate();
+				return sizei;
+			}
+		});
+		return size;
+	}
+
+	@SuppressWarnings( { "unchecked" })
+	public List<Object> selectProductById(String hql) {
+		List<Object> productList = getHibernateTemplate().find(hql);
+		return productList;
+	}
+
+	@SuppressWarnings( { "unchecked", "rawtypes" })
+	public List<Object> selectProductBysql(final String sql) {
+		List<Object> productList = (List<Object>) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session session)
+							throws HibernateException, SQLException {
+						// TODO Auto-generated method stub
+						final List<Object> productListStr;
+						productListStr = session.createSQLQuery(sql).list();
+						return productListStr;
+					}
+				});
+		return productList;
+	}
+
+	@SuppressWarnings( { "unchecked", "rawtypes" })
+	public List<Object> selectProduct(final int start, final int pageSize) {
+		// TODO Auto-generated method stub
+		List<Object> productList = (List<Object>) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session session)
+							throws HibernateException, SQLException {
+						// TODO Auto-generated method stub
+						final List<Object> productListStr;
+						String hql = "SELECT a FROM Product a where a.productId like '%zcz%'";
+						productListStr = session.createQuery(hql)
+								.setFirstResult((start - 1) * pageSize)
+								.setMaxResults(pageSize).list();
+						return productListStr;
+					}
+				});
+		return productList;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Object> selectProductAll() {
+		// TODO Auto-generated method stub
+		String queryString = "select a from Product a";
+		List<Object> productList = getHibernateTemplate().find(queryString);
+		return productList;
+	}
+
+	@Override
+	public int selectProductList() {
+		// TODO Auto-generated method stub
+		int size = 0;
+		String queryString = "SELECT a FROM Product a where a.productId like '%zcz%'";
+		size = getHibernateTemplate().find(queryString).size();
+		return size;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Object> selectProduct() {
+		// TODO Auto-generated method stub
+		String queryString = "SELECT b.equipmentId,a,count(*),b FROM Product a left join a.equipment b  GROUP BY a.productId";
+		List<Object> productList = getHibernateTemplate().find(queryString);
+		return productList;
+	}
+
+	@SuppressWarnings( { "unchecked", "rawtypes" })
+	@Override
+	public List<Object> selectProducts(final String sql, final int start,
+			final int pageSize) {
+
+		List<Object> products = (List<Object>) getHibernateTemplate().execute(
+				new HibernateCallback() {
+					public Object doInHibernate(Session session)
+							throws HibernateException, SQLException {
+						// TODO Auto-generated method stub
+						List<Object> ProducStrs = session.createSQLQuery(sql)
+								.setFirstResult((start - 1) * pageSize)
+								.setMaxResults(pageSize) // 分页
+								.list();
+						return ProducStrs;
+					}
+				});
+		return products;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<String> equipmentIdList(String hql) {
+		// TODO Auto-generated method stub
+		List<String> equipmentIdListStr = getHibernateTemplate().find(hql);
+		return equipmentIdListStr;
+	}
+
+	@Override
+	public Equipment selecteEquipmentById(String equipmentId) {
+		// TODO Auto-generated method stub
+		Equipment equipment = new Equipment();
+		equipment = getHibernateTemplate().get(Equipment.class, equipmentId);
+		return equipment;
+	}
+
+	@Override
+	public String equVersion(String equipmentId) {
+		// TODO Auto-generated method stub
+		String queryString = "select e.softVersion from Product e where e.productId='"
+				+ equipmentId + "'";
+		String name = getHibernateTemplate().find(queryString).toString();
+		name = name.substring(1, name.indexOf("]"));
+		return name;
+	}
+
+	@Override
+	public void updProductById(String productId, String softVersion,
+			String versionCont) {
+		// TODO Auto-generated method stub
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+		String date = df.format(new Date());// new Date()为获取当前系统时间，也可使用当前时间戳
+		Product product = new Product();
+		product = getHibernateTemplate().get(Product.class, productId);
+		product.setSoftVersion(softVersion);
+		product.setVersion_updateContent(versionCont);
+		product.setVersion_updateTime(date);
+		getHibernateTemplate().saveOrUpdate(product);
+	}
+
+}

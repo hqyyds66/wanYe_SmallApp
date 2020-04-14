@@ -1,0 +1,24 @@
+package com.mindor.dao;
+
+import java.util.List;
+
+import com.mindor.entity.InfraredBin;
+import com.mindor.entity.Intermediate;
+
+public interface Infrareddao {
+	public List<InfraredBin> selectInfrared(String userId);
+
+	public void addInfrared(InfraredBin infraredBin);
+
+	public void delInfrared(int infraredBinId);
+
+	public void updateInfrared(String infraredBinId, String nick);
+
+	public String state(String equipmentId);
+	
+	public String equipmentMac(String equipmentId);
+	
+	public String equipmentNote(String userId,String equipmentId);
+	
+	public List<Intermediate>  selectInfrared_eq(String userId);
+}

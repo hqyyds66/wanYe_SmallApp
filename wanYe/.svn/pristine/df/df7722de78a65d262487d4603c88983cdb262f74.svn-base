@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<!-- 
+		描述一个持久化类
+		 name属性为持久化类的全名
+		 table 该持久化类对应的表名  默认情况下为类名
+		 catalog 为数据库的名称
+	 -->
+	<class name="com.mindor.entity.Equipment" table="Equipment">
+		<!-- 
+			id对应表中的主键
+			  name为持久化类中属性的名称
+			  length 为对应数据库表中相应字段的长度
+			  column  属性的名称对应的表的字段名称   不写则默认和属性的名称一致
+		 -->
+		<id name="equipmentId" length="128" type="java.lang.String" column="equipmentId">
+			<!-- 
+				主键的生成器
+			 -->
+		</id>
+		<property name="equipmentName" column="equipmentName" type="java.lang.String" length="20">
+		</property>
+		<property name="equipmentState" column="equipmentState" type="java.lang.Integer" length="50">
+		</property>
+		<property name="activationState" column="activationState" type="java.lang.Integer" length="20">
+		</property>
+		<property name="agreement" column="agreement" type="java.lang.String" length="50">
+		</property>
+		<property name="creationDate" column="creationDate" type="java.lang.String" length="128">
+		</property>
+		<property name="Manufacturers" column="Manufacturers" type="java.lang.String" length="50">
+		</property>
+		<property name="model" column="model" type="java.lang.String" length="50">
+		</property>
+		<property name="equipmentdescribe" column="equipmentdescribe" type="java.lang.String" length="50">
+		</property>
+		<property name="label" column="label" type="java.lang.String" length="50">
+		</property>
+		<property name="equipmentLabel" column="equipmentLabel" type="java.lang.String" length="50">
+		</property>
+		<property name="specificEquipmentLabel" column="specificEquipmentLabel" type="java.lang.String" length="50">
+		</property>
+		<property name="locationStr" column="locationStr" type="java.lang.String" length="128">
+		</property>
+		<property name="longitude" column="longitude" type="java.lang.String" length="128">
+		</property>
+		<property name="latitude" column="latitude" type="java.lang.String" length="128">
+		</property>
+		
+	    <!-- 表之间关系映射 -->  
+       <many-to-one name="Product" column="productId" lazy="false" fetch="join"></many-to-one> 
+       <many-to-one name="OpenUser" column="userId" lazy="false" fetch="join"></many-to-one>
+	</class>
+</hibernate-mapping>

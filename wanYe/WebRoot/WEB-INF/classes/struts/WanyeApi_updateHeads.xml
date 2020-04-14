@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+   <!--解决乱码    -->
+	    <constant name="struts.i18n.encoding" value="UTF-8"></constant>
+	        <constant name="struts.devMode" value="true"/>
+               <constant name="struts.multipart.maxSize" value="10000000"/>
+	<package name="WanyeApi_updateHeads" namespace="/" extends="struts-default,json-default">
+	   <action name="WanyeApiUpdateHeads_*" method="{1}" class="com.mindor.api.WanYeApiUpdateHeads">
+	   </action>
+	</package>
+</struts>
