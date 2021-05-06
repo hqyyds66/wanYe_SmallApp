@@ -32,7 +32,6 @@ public class AesCbcUtil {
 	    public static String decrypt(String data, String key, String iv, String encodingFormat) throws Exception {
 
 	    	System.out.println("data=="+data);
-	    	System.out.println("iv=="+iv);
 	    	System.out.println("key=="+key);
 	    	data=data.replaceAll(" ", "+");
 	    	iv=iv.replaceAll(" ", "+");
